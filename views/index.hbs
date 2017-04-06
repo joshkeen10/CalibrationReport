@@ -1,0 +1,55 @@
+
+
+
+
+<script>
+  $(document).ready(function(){
+
+
+    $.ajax({
+      url:'/api/locations',
+      type:'GET',
+      dataType:'json'
+    })
+      .done(function(json){
+        $('#myTable').append("<table id ='tb'></table>")
+        var t = $('#myTable').children();
+
+        var k = Object.keys(json[0]);
+        console.log(k)
+        var h = "<thead><tr>";
+        var r = "<tbody>";
+        for(i=0; i<json.length;i++){
+           r += "<tr>";
+          for(j=0; j<k.length; j++){
+            if(i==0){
+                h += "<th>"+k[j]+"</th>";
+            }
+            r += "<td>" + json[i][k[j]] + "</td>"
+            console.log(json[i]);
+          }
+
+          r += "</tr>"
+        };
+        r += "</tbody>"
+        h+="</tr></thead>"
+        t.append(h)
+        t.append(r)
+        $('#tb').DataTable({
+        "order":[[3,"desc"]]  
+        });
+      });
+
+
+
+
+  })
+
+
+
+</script>
+
+
+
+
+<div id="myTable"></div>
