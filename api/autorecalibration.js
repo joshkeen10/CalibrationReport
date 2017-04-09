@@ -14,16 +14,18 @@ const config = {
 };
 
 // Get request with parameters.
-router.get('/locationid', function(req, res){
+router.get('/location', function(req, res){
 
   var locationid = req.query.locationid;
   var data = [];
   //var locationid = '8263EBD5-5EDC-11E4-9FA6-00155D51AA0D';
   var querystring =
-    `select l.Name, c1.LocationId, c1.DateCreated, c1.DateModified, Round(c1.RubberPositionX,3) as RubberPositionX,
-    Round(c1.RubberPositionY,3) as RubberPositionY, Round(c1.RubberPositionZ,3) as RubberPositionZ,
-    Round(c1.HomePositionX,3) as HomePositionX, Round(c1.HomePositionY,3) as HomePositionY, Round(c1.HomePositionZ,3) as HomePositionZ, c1.CalibrationId,
-    Round(c1.FixedRadarTilt,3) as FixedRadarTilt, Round(c1.FixedRadarRoll,3) as FixedRadarRoll, c1.CalibrationClass, l.SoftwareVersion
+    `select l.Name, c1.LocationId, c1.DateCreated, c1.DateModified, dbo.MtoIn(Round(c1.RubberPositionX,3)) as RubberPositionX,
+    dbo.MtoIn(Round(c1.RubberPositionY,3)) as RubberPositionY, dbo.MtoIn(Round(c1.RubberPositionZ,3)) as RubberPositionZ,
+    dbo.MtoIn(Round(c1.HomePositionX,3)) as HomePositionX, dbo.MtoIn(Round(c1.HomePositionY,3)) as HomePositionY,
+    dbo.MtoIn(Round(c1.HomePositionZ,3)) as HomePositionZ, c1.CalibrationId,
+    Round(degrees(c1.FixedRadarTilt),3) as FixedRadarTilt, Round(degrees(c1.FixedRadarRoll),3) as FixedRadarRoll,
+    c1.CalibrationClass, l.SoftwareVersion, l.OEMVersion
     from calibration c1
     inner join
           (select min(datecreated) as datecreated, min(datemodified) as datemodified, locationID from calibration
@@ -78,24 +80,25 @@ router.get('/locationid', function(req, res){
 
 module.exports = router;
 
-
 /* GET home page. */
 router.get('/locations', function(req, res) {
   var data = [];
   var querystring =
-    `select l.Name, c1.LocationId, c1.DateCreated, c1.DateModified, Round(c1.RubberPositionX,3) as RubberPositionX,
-    Round(c1.RubberPositionY,3) as RubberPositionY, Round(c1.RubberPositionZ,3) as RubberPositionZ,
-    Round(c1.HomePositionX,3) as HomePositionX, Round(c1.HomePositionY,3) as HomePositionY, Round(c1.HomePositionZ,3) as HomePositionZ, c1.CalibrationId,
-    Round(c1.FixedRadarTilt,3) as FixedRadarTilt, Round(c1.FixedRadarRoll,3) as FixedRadarRoll, c1.CalibrationClass, l.SoftwareVersion
-    from calibration c1
-    inner join
-          (select min(datecreated) as datecreated, min(datemodified) as datemodified, locationID from calibration
-          where calibrationclass = 'autorecalibration'
-          group by locationID) c2
-    on c2.locationID = c1.locationID and c1.datemodified = c2.datemodified
-    inner join location l
-    on l.locationID = c1.locationID
-    order by c1.datemodified desc`;
+  `select l.Name, c1.LocationId, c1.DateCreated, c1.DateModified, dbo.MtoIn(Round(c1.RubberPositionX,3)) as RubberPositionX,
+  dbo.MtoIn(Round(c1.RubberPositionY,3)) as RubberPositionY, dbo.MtoIn(Round(c1.RubberPositionZ,3)) as RubberPositionZ,
+  dbo.MtoIn(Round(c1.HomePositionX,3)) as HomePositionX, dbo.MtoIn(Round(c1.HomePositionY,3)) as HomePositionY,
+  dbo.MtoIn(Round(c1.HomePositionZ,3)) as HomePositionZ, c1.CalibrationId,
+  Round(degrees(c1.FixedRadarTilt),3) as FixedRadarTilt, Round(degrees(c1.FixedRadarRoll),3) as FixedRadarRoll,
+  c1.CalibrationClass, l.SoftwareVersion, l.OEMVersion
+  from calibration c1
+  inner join
+        (select min(datecreated) as datecreated, min(datemodified) as datemodified, locationID from calibration
+        where calibrationclass = 'autorecalibration'
+        group by locationID) c2
+  on c2.locationID = c1.locationID and c1.datemodified = c2.datemodified and year(c1.datemodified) = '2017'
+  inner join location l
+  on l.locationID = c1.locationID
+  order by c1.datemodified desc`;
 
   sql.connect(config, err => {
       // ... error checks
