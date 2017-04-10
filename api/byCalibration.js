@@ -91,17 +91,17 @@ router.get('/deltas', function(req, res){
 
    var querystring =
     `select jk.Name, jk.LocationID, jk.DateModified, jk.CalibrationID, jk.SoftwareVersion, jk.OEMVersion,
-	  ifnull(dbo.MtoIn(jk.RubberPositionX - lag(jk.RubberPositionX) over (order by jk.datemodified)),0) as RPXDelta,
-	  ifnull(dbo.MtoIn(jk.RubberPositionY - lag(jk.RubberPositionY) over (order by jk.datemodified)),0) as RPYDelta,
-	  ifnull(dbo.MtoIn(jk.RubberPositionZ - lag(jk.RubberPositionZ) over (order by jk.datemodified)),0) as RPZDelta,
-	  ifnull(dbo.MtoIn(jk.HomePositionX - lag(jk.HomePositionX) over (order by jk.datemodified)),0) as HPXDelta,
-	  ifnull(dbo.MtoIn(jk.HomePositionY - lag(jk.HomePositionY) over (order by jk.datemodified)),0) as HPYDelta,
-	  ifnull(dbo.MtoIn(jk.HomePositionZ - lag(jk.HomePositionZ) over (order by jk.datemodified)),0) as HPZDelta,
-	  ifnull((jk.FixedRadarTilt - lag(jk.FixedRadarTilt) over (order by jk.FixedRadarTilt)),0) as TiltDelta,
-	  ifnull((jk.FixedRadarRoll - lag(jk.FixedRadarRoll) over (order by jk.FixedRadarRoll)),0) as RollDelta
+	  dbo.MtoIn(isnull(jk.RubberPositionX - lag(jk.RubberPositionX) over (order by jk.datemodified), 0)) as RPXDelta,
+	  dbo.MtoIn(isnull(jk.RubberPositionY - lag(jk.RubberPositionY) over (order by jk.datemodified), 0)) as RPYDelta,
+	  dbo.MtoIn(isnull(jk.RubberPositionZ - lag(jk.RubberPositionZ) over (order by jk.datemodified), 0)) as RPZDelta,
+	  dbo.MtoIn(isnull(jk.HomePositionX - lag(jk.HomePositionX) over (order by jk.datemodified), 0)) as HPXDelta,
+	  dbo.MtoIn(isnull(jk.HomePositionY - lag(jk.HomePositionY) over (order by jk.datemodified), 0)) as HPYDelta,
+	  dbo.MtoIn(isnull(jk.HomePositionZ - lag(jk.HomePositionZ) over (order by jk.datemodified), 0)) as HPZDelta,
+	  isnull(jk.FixedRadarTilt - lag(jk.FixedRadarTilt) over (order by jk.datemodified), 0) as TiltDelta,
+	  isnull(jk.FixedRadarRoll - lag(jk.FixedRadarRoll) over (order by jk.datemodified), 0) as RollDelta
     from
     (
-      select l.Name, c1.LocationId, c1.DateCreated, c1.DateModified, Round(c1.RubberPositionX,3) as RubberPositionX,
+    select l.Name, c1.LocationId, c1.DateCreated, c1.DateModified, Round(c1.RubberPositionX,3) as RubberPositionX,
       Round(c1.RubberPositionY,3) as RubberPositionY, Round(c1.RubberPositionZ,3) as RubberPositionZ,
       Round(c1.HomePositionX,3) as HomePositionX, Round(c1.HomePositionY,3) as HomePositionY, Round(c1.HomePositionZ,3) as HomePositionZ, c1.CalibrationId,
       Round(degrees(c1.FixedRadarTilt),3) as FixedRadarTilt, Round(degrees(c1.FixedRadarRoll),3) as FixedRadarRoll, c1.CalibrationClass, l.SoftwareVersion, l.OEMVersion
