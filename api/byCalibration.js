@@ -91,14 +91,14 @@ router.get('/deltas', function(req, res){
 
    var querystring =
     `select jk.Name, jk.LocationID, jk.DateModified, jk.CalibrationID, jk.SoftwareVersion, jk.OEMVersion,
-	  dbo.MtoIn(jk.RubberPositionX - lag(jk.RubberPositionX) over (order by jk.datemodified)) as RPXDelta,
-	  dbo.MtoIn(jk.RubberPositionY - lag(jk.RubberPositionY) over (order by jk.datemodified)) as RPYDelta,
-	  dbo.MtoIn(jk.RubberPositionZ - lag(jk.RubberPositionZ) over (order by jk.datemodified)) as RPZDelta,
-	  dbo.MtoIn(jk.HomePositionX - lag(jk.HomePositionX) over (order by jk.datemodified)) as HPXDelta,
-	  dbo.MtoIn(jk.HomePositionY - lag(jk.HomePositionY) over (order by jk.datemodified)) as HPYDelta,
-	  dbo.MtoIn(jk.HomePositionZ - lag(jk.HomePositionZ) over (order by jk.datemodified)) as HPZDelta,
-	  (jk.FixedRadarTilt - lag(jk.FixedRadarTilt) over (order by jk.FixedRadarTilt)) as TiltDelta,
-	  (jk.FixedRadarRoll - lag(jk.FixedRadarRoll) over (order by jk.FixedRadarRoll)) as RollDelta
+	  ifnull(dbo.MtoIn(jk.RubberPositionX - lag(jk.RubberPositionX) over (order by jk.datemodified)),0) as RPXDelta,
+	  ifnull(dbo.MtoIn(jk.RubberPositionY - lag(jk.RubberPositionY) over (order by jk.datemodified)),0) as RPYDelta,
+	  ifnull(dbo.MtoIn(jk.RubberPositionZ - lag(jk.RubberPositionZ) over (order by jk.datemodified)),0) as RPZDelta,
+	  ifnull(dbo.MtoIn(jk.HomePositionX - lag(jk.HomePositionX) over (order by jk.datemodified)),0) as HPXDelta,
+	  ifnull(dbo.MtoIn(jk.HomePositionY - lag(jk.HomePositionY) over (order by jk.datemodified)),0) as HPYDelta,
+	  ifnull(dbo.MtoIn(jk.HomePositionZ - lag(jk.HomePositionZ) over (order by jk.datemodified)),0) as HPZDelta,
+	  ifnull((jk.FixedRadarTilt - lag(jk.FixedRadarTilt) over (order by jk.FixedRadarTilt)),0) as TiltDelta,
+	  ifnull((jk.FixedRadarRoll - lag(jk.FixedRadarRoll) over (order by jk.FixedRadarRoll)),0) as RollDelta
     from
     (
       select l.Name, c1.LocationId, c1.DateCreated, c1.DateModified, Round(c1.RubberPositionX,3) as RubberPositionX,
@@ -109,8 +109,8 @@ router.get('/deltas', function(req, res){
 	    inner join location l
 		  on l.locationID = c1.locationID and c1.calibrationclass = 'AutoRecalibration' and year(c1.datemodified) = '2017'
       where c1.LocationId = '`+locationid+`'
-      ) jk
-      order by jk.datemodified`
+    ) jk
+    order by jk.datemodified`
 
    sql.connect(config, err => {
        // ... error checks
